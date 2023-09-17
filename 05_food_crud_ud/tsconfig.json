@@ -15,5 +15,5 @@
     "baseUrl": "./src",
     "incremental": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "../06_express_pattern/src/foods/foods.service.ts"]
 }

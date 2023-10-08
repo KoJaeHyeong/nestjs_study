@@ -14,4 +14,16 @@ export class CatsRepository {
   async create(cat: CatRequestDto): Promise<Cat> {
     return await this.catModel.create(cat);
   }
+
+  async findCatByEmail(email: string): Promise<Cat | null> {
+    const cat = await this.catModel.findOne({ email });
+
+    return cat;
+  }
+
+  async findCatByIdwithoutPassword(catId: string) {
+    // 보안상의 이유로 패스워드는 반환 시 제외
+    const cat = await this.catModel.findById(catId).select('-password'); // '-'는 password를 뺀 값을 가져오는 문법, 없으면 모든 값 가져온다.
+    return cat;
+  }
 }

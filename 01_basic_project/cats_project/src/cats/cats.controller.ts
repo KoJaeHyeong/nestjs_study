@@ -4,9 +4,14 @@ import {
   Get,
   Post,
   UseFilters,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AuthService } from 'src/auth/auth.service';
+import { LoginRequestDto } from 'src/auth/dto/login.request.dto';
+import { JwtAuthGuard } from 'src/auth/jwt/jwt.guard';
+import { CurrnetUser } from 'src/common/decorators/user.decorator';
 import { HttpExceptionFilter } from 'src/common/exceptions/http-exception.filter';
 import { SucessInterceptor } from 'src/common/interceptor/success.interceptor';
 import { CatsService } from './cats.service';
@@ -17,12 +22,16 @@ import { CatRequestDto } from './dto/cats.request.dto';
 @UseInterceptors(SucessInterceptor)
 @UseFilters(HttpExceptionFilter) //* 전역 필터 적용
 export class CatsController {
-  constructor(private readonly catsService: CatsService) {}
+  constructor(
+    private readonly catsService: CatsService,
+    private readonly authService: AuthService,
+  ) {}
 
   @ApiOperation({ summary: '고양이 정보 불러오기' }) // swagger 문서 설명을 위한 데코레이션
   @Get()
-  getCurrentCat() {
-    return 'current Cat';
+  @UseGuards(JwtAuthGuard)
+  getCurrentCat(@CurrnetUser() cat) {
+    return cat;
   }
 
   @ApiResponse({
@@ -42,14 +51,8 @@ export class CatsController {
 
   @ApiOperation({ summary: '로그인' })
   @Post('login')
-  logIn() {
-    return 'login';
-  }
-
-  @ApiOperation({ summary: '로그아웃' })
-  @Post('logout')
-  logOut() {
-    return 'logout';
+  logIn(@Body() data: LoginRequestDto) {
+    return this.authService.jwtLogin(data);
   }
 
   @ApiOperation({ summary: '고양이 이미지 불러오기' })

@@ -1,6 +1,7 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as expressBasicAuth from 'express-basic-auth';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/exceptions/http-exception.filter';
 
@@ -9,6 +10,15 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe()); // 글로벌 하게 사용하기 위한 미들웨어 설정
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.use(
+    ['/docs', '/docs-json'],
+    expressBasicAuth({
+      challenge: true,
+      users: {
+        [process.env.SWAGGER_USERS]: process.env.SWAGGER_PASSWORD,
+      },
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Cats_API')

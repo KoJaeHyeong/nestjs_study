@@ -30,8 +30,8 @@ export class CatsController {
   @ApiOperation({ summary: '고양이 정보 불러오기' }) // swagger 문서 설명을 위한 데코레이션
   @Get()
   @UseGuards(JwtAuthGuard)
-  getCurrentCat(@CurrnetUser() cat) {
-    return cat;
+  getCurrentCat(@CurrnetUser() cat: any) {
+    return cat.readOnlyData;
   }
 
   @ApiResponse({

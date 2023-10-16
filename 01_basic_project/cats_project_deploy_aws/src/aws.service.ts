@@ -3,23 +3,18 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { BadRequestException } from '@nestjs/common';
 import * as AWS from 'aws-sdk';
 import * as path from 'path';
+import { CatsRepository } from './cats/cats.repository';
+import { Cat } from './cats/cats.schema';
 
 export class AwsService {
   private readonly awsS3: S3Client;
   public readonly S3_BUCKET_NAME: string;
-  constructor() {
+  constructor(private readonly catsRepository: CatsRepository) {
     this.S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME;
     this.awsS3 = new S3Client({ region: process.env.AWS_S3_REGION });
   }
 
-  async uploadFileToS3(
-    folder: string,
-    file: Express.Multer.File,
-  ): Promise<{
-    key: string;
-    s3Object: object;
-    contentType: string;
-  }> {
+  async uploadFileToS3(folder: string, file: Express.Multer.File, cat: Cat) {
     try {
       const key = `${folder}/${Date.now()}_${path.basename(
         file[0].originalname,
@@ -31,10 +26,9 @@ export class AwsService {
       });
 
       const result = await multipartUpload.done();
+      const imgUrl = result['Location'];
 
-      console.log('result', result);
-
-      return { key, s3Object: result, contentType: file[0].mimetype };
+      return imgUrl;
     } catch (error) {
       throw new BadRequestException(`File Upload failed : ${error.message}`);
     }
@@ -46,8 +40,7 @@ export class AwsService {
     callback?: (err: AWS.AWSError, data: AWS.S3.DeleteObjectsOutput) => void,
   ) {
     try {
-      const imgKey = `crayon/${key['key']}`;
-      console.log('imgKey', imgKey);
+      const imgKey = `${folder}/${key['key']}`;
 
       const deleObject = new DeleteObjectCommand({
         Bucket: this.S3_BUCKET_NAME,

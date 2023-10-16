@@ -66,16 +66,13 @@ export class CatsController {
   // @UseInterceptors(FilesInterceptor('image', 10, multerOptions('cats')))
   @UseInterceptors(FilesInterceptor('image'))
   @UseGuards(JwtAuthGuard)
-  uploadCatImg(
+  async uploadCatImg(
     // @UploadedFiles() files: Array<Express.Multer.File>,
     @UploadedFiles() files: Express.Multer.File,
     @CurrnetUser() cat: Cat,
   ) {
-    // console.log(files);
-    // return 'upload img';s
-    // return { image: `http://localhost:8000/media/cats/${files[0].filename}` };
-    // return this.catsService.uploadImg(cat, files); // local
-    return this.awsService.uploadFileToS3('crayon', files);
+    const imgUrl = await this.awsService.uploadFileToS3('crayon', files, cat);
+    return this.catsService.uploadImg(cat, imgUrl);
   }
 
   @ApiOperation({ summary: '고양이 이미지 삭제하기' })
